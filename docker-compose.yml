@@ -1,0 +1,26 @@
+version: '3'
+services:
+  browser:
+    image: "selenium/standalone-chrome"
+    ports:
+      - "4444:4444"
+  test:
+    working_dir: /workspace
+    image: openjdk:8-jdk
+    volumes:
+      - .:/workspace
+    environment:
+      GRADLE_USER_HOME: '/workspace/.gradle'
+    depends_on:
+      - "browser"
+    command: "./gradlew clean chromeTest"
+  publish:
+    image: mikesir87/aws-cli
+    working_dir: /workspace
+    depends_on:
+      - "test"
+    environment:
+    volumes:
+      - .:/aws
+    command: sh
+

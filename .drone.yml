@@ -1,0 +1,25 @@
+workspace:
+  path: '/workspace'
+pipeline:
+  test:
+    image: openjdk:8-jdk
+    environment:
+      GRADLE_USER_HOME: '/workspace/.gradle'
+    commands:
+      - ./gradlew clean chromeTest
+  publish:
+    image: mikesir87/aws-cli
+    secrets:
+    - aws_access_key_id
+    - aws_secret_access_key
+    - sse_kms_key_id
+    - report_bucket_name
+    commands:
+      - export AWS_ACCESS_KEY_ID=$${AWS_ACCESS_KEY_ID}
+      - export AWS_SECRET_ACCESS_KEY=$${AWS_SECRET_ACCESS_KEY}
+      - "aws s3 cp ./build/reports s3://$${REPORT_BUCKET_NAME}/report-$$(date +%Y%m%d%H%M%S) --region=eu-west-2 --sse aws:kms --sse-kms-key-id $${SSE_KMS_KEY_ID} --recursive"
+services:
+  browser:
+    image: "selenium/standalone-chrome"
+    ports:
+      - "4444:4444"
